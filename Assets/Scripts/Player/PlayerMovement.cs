@@ -25,6 +25,8 @@ public class PlayerMovement : MonoBehaviour
     private float scaleX;
     private bool isKnockedBack = false;
 
+    private bool isAlive = true;
+
     public static PlayerMovement Instance { get; private set; }
     public PlayerHealth playerHealth;
 
@@ -42,21 +44,25 @@ public class PlayerMovement : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         scaleX = transform.localScale.x;
 
+        rb.freezeRotation = true;
+        isAlive = true;
     }
 
     void OnEnable()
-{
-    PlayerHealth.gotHurt += TakeKnockback;
-}
+    {
+        PlayerHealth.gotHurt += TakeKnockback;
+        PlayerHealth.gotKilled += GotKilled;
+    }
 
-void OnDisable()
-{
-    PlayerHealth.gotHurt -= TakeKnockback;
-}
+    void OnDisable()
+    {
+        PlayerHealth.gotHurt -= TakeKnockback;
+        PlayerHealth.gotKilled -= GotKilled;
+    }
 
     void FixedUpdate()
     {
-        if (!isKnockedBack)
+        if (!isKnockedBack && isAlive)
         {
             handleDirection();
 
@@ -65,6 +71,7 @@ void OnDisable()
             currentVelocity.x = xVal * speed;
 
             rb.linearVelocity = currentVelocity;
+
         }
     
         if (jump)
@@ -118,5 +125,12 @@ void OnDisable()
     private void ResetKnockback()
     {
         isKnockedBack = false;
+    }
+
+    private void GotKilled()
+    {
+        isAlive = false;
+        rb.freezeRotation = false;
+        rb.AddTorque(1f, ForceMode2D.Impulse);
     }
 }

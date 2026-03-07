@@ -12,6 +12,7 @@ public class PlayerHealth : MonoBehaviour
 
     SpriteRenderer sr;
     public static event Action<float, Vector2> gotHurt;
+    public static event Action gotKilled;
     public static PlayerHealth Instance { get; private set; }
 
     private void Awake()
@@ -33,6 +34,13 @@ public class PlayerHealth : MonoBehaviour
             gotHurt?.Invoke(knockbackForce, enemyPosition);
             StartCoroutine(InvincibleMode());
             StartCoroutine(HurtEffect());
+        }
+
+        if (health <= 0)
+        {
+            // Handle player death (e.g., reload scene, show game over screen, etc.)
+            Debug.Log("Player has died!");
+            gotKilled?.Invoke();
         }
     }
 
