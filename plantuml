@@ -1,0 +1,2 @@
+#!/bin/bash
+java -jar /home/lee/Documents/UnityGames/IT5104N/plantuml.jar "$@"
