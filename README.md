@@ -121,4 +121,6 @@ Simple device authentication, matchmaking, and real-time position synchronizatio
 <video src="Pictures/nakamademo.mp4" controls="controls" width="100%">
 </video>
 
+[Click here to watch the Week 4 Multiplayer Demo](Pictures/nakamademo.mp4)
+
 From the host's POV, Blue is their controllable character, and Red is everyone else who joined.
