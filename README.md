@@ -95,4 +95,30 @@ Two basic enemies, "Melee" and "Ranged" are present with simple patrol & attack 
 ![alt text](Pictures/week3-4.png)
 ![alt text](Pictures/week3-5.png)
 
+# WEEK 4
 
+## Instructions
+
+Week 4 Activity 1 Multiplayer (basic cloud server)    
+
+Manuel's Notes : 
+You can try both the cloud based or the local network based, but I only need 1 either cloud or local.
+if you cannot complete by Friday, please continue this on Saturday, I think this will be a bit challenging.
+
+Details : 
+Nakama client setup, authentication, matchmaking & relayed realtime sync. 
+Add basic 2-player movement sync to an existing prototype (e.g., top-down shooter or platformer); commit with working join/match demo.    Multiplayer (basic cloud server)
+o Subtopics: Installing Nakama Godot SDK, connecting to Heroic Cloud or local Nakama server (Docker quick-start), device/email authentication, creating/joining matches via matchmaking or code, using Nakama's relayed multiplayer (socket + match messages), syncing player position/inputs with MultiplayerSynchronizer or manual RPC-like messages via Nakama.
+
+## Work
+
+A basic multiplayer setup was achieved using the Nakama Unity SDK alongside a local Docker-based server.
+
+A super "God script" was made for both Nakama networking functions and simple Player movement logic.
+
+Simple device authentication, matchmaking, and real-time position synchronization are implemented.
+
+<video src="Pictures/nakamademo.mp4" controls="controls" width="100%">
+</video>
+
+From the host's POV, Blue is their controllable character, and Red is everyone else who joined.

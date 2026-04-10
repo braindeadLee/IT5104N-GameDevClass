@@ -4,272 +4,160 @@ skinparam backgroundColor #FEFEFE
 skinparam classBackgroundColor #F0F0F0
 skinparam classBorderColor #333333
 
-'--- INTERFACES ---
-interface IDamageable {
-    +void Damage(float damageAmount)
-    +void Die()
-    +float MaxHealth {get; set;}
-    +float CurrentHealth {get; set;}
+
+enum ItemType{
+    MASK
+    RULE
+    LETTER
 }
 
-interface ITriggerCheckable {
-    +bool IsAggroed {get; set;}
-    +bool IsWithinStrikingDistance {get; set;}
+enum RuleType{
+    COLOR
+    QUALITY
+    THEME
+    INSIGNIA
 }
 
-interface IEnemyMoveable {
-    +Rigidbody2D RB {get; set;}
-    +bool IsFacingRight {get; set;}
-    +void MoveEnemy(Vector2 velocity)
-    +void CheckForLeftOrRightFacing(Vector2 velocity)
+enum CursorMode{
+    NORMAL
+    INSPECTING
 }
 
-'--- STATE MACHINE CORE ---
-class EnemyStateMachine {
-    +EnemyState CurrentEnemyState {get; set;}
-    +void Initialize(EnemyState startingState)
-    +void ChangeState(EnemyState newState)
+struct ItemAttribute{
+    RuleType ruleType
+    string actualValue
 }
 
-class EnemyState {
-    -Enemy enemy
-    -EnemyStateMachine enemyStateMachine
-    +virtual void EnterState()
-    +virtual void ExitState()
-    +virtual void FrameUpdate()
-    +virtual void PhysicsUpdate()
-    +virtual void AnimationTriggerEvent(triggerType)
+struct InspectionZone{
+    BoxCollider2D collider
+    ItemAttribute attribute
 }
 
-'--- CONCRETE STATES ---
-class EnemyIdleState extends EnemyState {
-    -Vector3 _targetPos
-    -Vector3 _direction
-    +override void EnterState()
-    +override void FrameUpdate()
+class Item extends ScriptableObject{
+    +string itemName
+    +ItemType itemType
+    +Sprite itemSprite
+    Vector2 alignmentOffset
+    +List<ItemAttribute> itemAttributes
 }
 
-class EnemyChaseState extends EnemyState {
-    +override void EnterState()
-    +override void FrameUpdate()
-    +override void PhysicsUpdate()
+class Guest extends ScriptableObject{
+    +string guestName
+    +Sprite guestSprite
+    +bool isLegit
+    +bool willFight
+    +TextAsset dialogue
 }
 
-class EnemyAttackState extends EnemyState {
-    +override void EnterState()
-    +override void FrameUpdate()
-    +override void PhysicsUpdate()
+class MaskDisplay{
+    +Item itemAssigned
+    +Transform transform
+    +SpriteRenderer sr
+    +List<InspectionZone> inspectionZones 
 }
 
-'--- BEHAVIOR LOGIC (SCRIPTABLE OBJECTS) ---
-class EnemyIdleSOBase {
-    +virtual void Initialize(GameObject owner, Enemy enemy)
-    +virtual void Execute()
+class GuestDisplay{
+    +MaskDisplay maskAssigned
+    +Transform transform
+    +Vector2 maskPivot
+
 }
 
-class EnemyIdleStandStill extends EnemyIdleSOBase {
-    +override void Execute()
+class macroManager{
+    +macroState initialState
+    +macroStateMachine stateMachine
+    +macroMenuState menuState
+    macroGameplayState gameplayState
 }
 
-class EnemyIdleRandomWander extends EnemyIdleSOBase {
-    -Vector3 _targetPos
-    +override void Execute()
+class macroState {
+    +macroManager
+    +macroStateMachine
+    void EnterState()
+    + void ExitState()
+    + void FrameUpdate()
+    + void PhysicsUpdate()
+    + void AnimationTriggerEvent(Enemy.AnimationTriggerType triggerType)
 }
 
-class EnemyChaseSOBase {
-    +virtual void Initialize(GameObject owner, Enemy enemy)
-    +virtual void Execute()
+class macroStateMachine{
+    +macroState currentState
+    + void Initialize(macroState startingState)
+    + void ChangeState(macroState newState)
 }
 
-class EnemyChaseDirectToPlayer extends EnemyChaseSOBase {
-    +override void Execute()
+class macroMenuState extends macroState{
 }
 
-class EnemyChaseRunAway extends EnemyChaseSOBase {
-    +override void Execute()
+class macroGameplayState extends macroState{
 }
 
-class EnemyAttackSOBase {
-    +virtual void Initialize(GameObject owner, Enemy enemy)
-    +virtual void Execute()
+class microManager{
+    +microState initialState
+    +microStateMachine stateMachine
+    +microCutsceneState cutsceneState
+    +microInstructionsState instructionsState
+    +microNextGuestState nextGuestState
+    +microInspectionState inspectionState
+    +microDecisionState decisionState
+    +MaskDisplay maskDisplay
+    +GuestDisplay guestDisplay
 }
 
-class EnemyAttackSingleStraightProjectile extends EnemyAttackSOBase {
-    +override void Execute()
+
+class microState{
+    +microManager
+    +microStateMachine
+    void EnterState()
+    + void ExitState()
+    + void FrameUpdate()
+    + void PhysicsUpdate()
+    + void AnimationTriggerEvent(Enemy.AnimationTriggerType triggerType)
 }
 
-'--- TRIGGER CHECKS ---
-class EnemyAggroCheck {
-    -CircleCollider2D aggroCollider
-    +void OnTriggerEnter2D(Collider2D collision)
-    +void OnTriggerExit2D(Collider2D collision)
+class microStateMachine{
+    +microState currentState
+    + void Initialize(microState startingState)
+    + void ChangeState(microState newState)
 }
 
-class EnemyStrikingDistanceCheck {
-    -CircleCollider2D strikingDistanceCollider
-    +void OnTriggerEnter2D(Collider2D collision)
-    +void OnTriggerExit2D(Collider2D collision)
+
+class microCutsceneState extends microState{
 }
 
-'--- ENEMY TYPES ---
-class Enemy implements IDamageable, IEnemyMoveable, ITriggerCheckable {
-    -EnemyStateMachine stateMachine
-    -EnemyIdleState idleState
-    -EnemyChaseState chaseState
-    -EnemyAttackState attackState
-    -EnemyIdleSOBase enemyIdleBase
-    -EnemyChaseSOBase enemyChaseBase
-    -EnemyAttackSOBase enemyAttackBase
-    +void Update()
-    +void FixedUpdate()
-    +void Damage(float damageAmount)
-    +void Die()
+class microInstructionsState extends microState{
 }
 
-class Ghost extends Enemy {
-    +void Initialize()
+class microNextGuestState extends microState{
 }
 
-'--- ENDLESS RUNNER ENEMIES ---
-class RunnerEnemy {
-    -float speed
-    -float direction
-    -AggroCheck aggroCheck
-    -float damage
-    +void Move()
-    +void OnTriggerEnter2D(Collider2D collision)
+class microInspectionState extends microState{
+    +CursorMode currentCursorMode
+    +void mouseShootRaycasts()
 }
 
-class Spike {
-    -float spawnRate
-    -Transform spawnPoint
-    -Rigidbody2D prefab
-    +void SpawnSpike()
+class microDecisionState extends microState{
 }
 
-class SpikeManager {
-    -List<Spike> spikeList
-    +void Update()
-    -void SpawnSpike()
-}
+macroManager --> macroStateMachine : has
+macroStateMachine --> macroState : manages
+macroState --> macroStateMachine : uses
+macroGameplayState --> microManager : enables
 
-'--- PLAYER ---
-class PlayerMovement {
-    -float jumpForce
-    -float moveSpeed
-    -Rigidbody2D rb
-    +void Move(Vector2 input)
-    +void Jump()
-}
+microManager --> microStateMachine : has
+microManager --> GuestDisplay : has
+microManager --> MaskDisplay : has
+MaskDisplay --> InspectionZone : has
+MaskDisplay --> ItemType : has
+MaskDisplay *--> Item : displays
+InspectionZone --> ItemAttribute : has
+ItemAttribute --> RuleType : has
+GuestDisplay --> MaskDisplay : has
+GuestDisplay *--> Guest : displays
+microStateMachine --> microState : manages
+microState --> microStateMachine : uses
+microInspectionState --> CursorMode : uses
 
-class PlayerHealth implements IDamageable {
-    -float maxHealth
-    -float currentHealth
-    +void Damage(float damageAmount)
-    +void Die()
-    +void Heal(float healAmount)
-}
 
-'--- RELATIONSHIPS ---
-EnemyState --> EnemyStateMachine : uses
-EnemyIdleState --> EnemyIdleSOBase : delegates to
-EnemyChaseState --> EnemyChaseSOBase : delegates to
-EnemyAttackState --> EnemyAttackSOBase : delegates to
-
-EnemyIdleSOBase <|-- EnemyIdleStandStill
-EnemyIdleSOBase <|-- EnemyIdleRandomWander
-
-EnemyChaseSOBase <|-- EnemyChaseDirectToPlayer
-EnemyChaseSOBase <|-- EnemyChaseRunAway
-
-EnemyAttackSOBase <|-- EnemyAttackSingleStraightProjectile
-
-Enemy --> EnemyStateMachine : owns
-Enemy --> EnemyIdleState : owns
-Enemy --> EnemyChaseState : owns
-Enemy --> EnemyAttackState : owns
-Enemy --> EnemyAggroCheck : observes
-Enemy --> EnemyStrikingDistanceCheck : observes
-
-Ghost --|> Enemy : extends
-
-RunnerEnemy --> AggroCheck : uses
-SpikeManager --> Spike : manages
-
-@enduml
-    -Transform _playerTransform
-    -float _movementSpeed
-    +EnemyChaseState(Enemy enemy, EnemyStateMachine enemyStateMachine)
-    +override void EnterState()
-    +override void FrameUpdate()
-}
-
-class EnemyAttackState extends EnemyState {
-    -Transform _playerTransform
-    -float _timer
-    -float _timeBetweenShots
-    -float _exitTimer
-    -float _timeTillExit
-    -float _distanceToCountExit
-    -float _bulletSpeed
-    +EnemyAttackState(Enemy enemy, EnemyStateMachine enemyStateMachine)
-    +override void EnterState()
-    +override void FrameUpdate()
-}
-
-class EnemyAggroCheck extends MonoBehaviour {
-    +GameObject PlayerTarget {get; set;}
-    -Enemy _enemy
-    -void Awake()
-    -void OnTriggerEnter2D(Collider2D collision)
-    -void OnTriggerExit2D(Collider2D collision)
-}
-
-class EnemyStrikingDistanceCheck extends MonoBehaviour {
-    +GameObject PlayerTarget {get; set;}
-    -Enemy _enemy
-    -void Awake()
-    -void OnTriggerEnter2D(Collider2D collision)
-    -void OnTriggerExit2D(Collider2D collision)
-}
-
-class Enemy extends MonoBehaviour implements IDamageable, IEnemyMoveable, ITriggerCheckable {
-    +float MaxHealth {get; set;}
-    +float CurrentHealth {get; set;}
-    +Rigidbody2D RB {get; set;}
-    +bool IsFacingRight {get; set;}
-    +bool IsAggroed {get; set;}
-    +bool IsWithinStrikingDistance {get; set;}
-    +EnemyStateMachine StateMachine {get; set;}
-    +EnemyIdleState IdleState {get; set;}
-    +EnemyChaseState ChaseState {get; set;}
-    +EnemyAttackState AttackState {get; set;}
-    +Rigidbody2D BulletPrefab
-    +float RandomMovementRange
-    +float RandomMovementSpeed
-    -void Awake()
-    -void Start()
-    -void Update()
-    -void FixedUpdate()
-    +void Damage(float damageAmount)
-    +void Die()
-    +void MoveEnemy(Vector2 velocity)
-    +void CheckForLeftOrRightFacing(Vector2 velocity)
-    +void SetAggroStatus(bool isAggroed)
-    +void SetStrikingDistanceBool(bool isWithinStrikingDistance)
-    -void AnimationTriggerEvent(AnimationTriggerType triggerType)
-}
-
-class Ghost extends Enemy {
-}
-
-Enemy *-- EnemyStateMachine
-Enemy *-- EnemyIdleState
-Enemy *-- EnemyChaseState
-Enemy *-- EnemyAttackState
-EnemyState --> Enemy
-EnemyState --> EnemyStateMachine
-EnemyAggroCheck --> Enemy : GetComponentInParent
-EnemyStrikingDistanceCheck --> Enemy : GetComponentInParent
 
 @enduml

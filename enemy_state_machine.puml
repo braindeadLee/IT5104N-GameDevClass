@@ -196,13 +196,12 @@ Ghost --|> Enemy : extends
 RunnerEnemy --> AggroCheck : uses
 SpikeManager --> Spike : manages
 
-@enduml
     -Transform _playerTransform
     -float _movementSpeed
     +EnemyChaseState(Enemy enemy, EnemyStateMachine enemyStateMachine)
     +override void EnterState()
     +override void FrameUpdate()
-}
+
 
 class EnemyAttackState extends EnemyState {
     -Transform _playerTransform
